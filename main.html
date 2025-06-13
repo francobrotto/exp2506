@@ -64,7 +64,7 @@
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
         const firebaseConfig = {
-            apiKey: "AIzaSyCxIwtZToLmwj0gVvmcR7HFPkA0qNNBmJ8",
+            apiKey: "AIzaSyAShFvRQZGFNY_PWwAL5X2PiAV-AlZyEJ4",
             authDomain: "phd-bristol.firebaseapp.com",
             projectId: "phd-bristol",
             storageBucket: "phd-bristol.firebasestorage.app",
@@ -280,6 +280,7 @@
                     type: jsPsychSurveyHtmlForm,
                     preamble: "<h2>Memory & Media Check</h2><p>Please answer the following questions as best as you can.</p>",
                     html: `
+                    <div>
                     <p><strong>Please list the names of all people mentioned in these posts.</strong></p>
                     <textarea name="names" rows="2" cols="50"></textarea><br><br>
 
@@ -302,6 +303,7 @@
                     <label><input type="checkbox" name="sources" value="unilad"> UNILAD/LADbible</label><br>
                     <label><input type="checkbox" name="sources" value="other"> Other</label><br>
                     <label><input type="checkbox" name="sources" value="none"> None</label><br><br>
+                    </div>
                     `,
                     button_label: "Continue"
                 };
