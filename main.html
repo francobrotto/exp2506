@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Information retention of content on social media</title>
     
     <!-- jsPsych CSS -->
@@ -50,6 +51,60 @@
         .group-prediction-item {
             width: 48%;
         }
+        .instagram-media {
+            max-width: 470px !important;
+            min-width: 280px !important;
+        }
+        input {
+            font-size: 20px;
+        }
+        .jspsych-btn {
+            font-size: 28px;
+            margin: auto;
+            margin-top: 40px;
+            margin-bottom: 150px;
+            display: block;
+            background-color: linen;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            text-align: center; /* centers the number text */
+        }
+        .question-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .question-text {
+            flex: 1; /* takes up available space */
+            padding-right: 10px;
+        }
+        .question-input {
+            width: 80px;
+            padding: 5px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        @media (max-width: 480px) {
+            .instagram-media {
+                max-width: 100% !important;
+            }
+            .wrapper {
+                max-width: 90% !important;
+            }
+            .jspsych-content {
+                width: 100% !important;
+            }
+            .centering {
+                max-width: 100% !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -64,7 +119,7 @@
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
         const firebaseConfig = {
-            apiKey: "AIzaSyAShFvRQZGFNY_PWwAL5X2PiAV-AlZyEJ4",
+            apiKey: "AIzaSyB8D_6tcOgRHuIZF2ol8DzyWJ3wmY45B3I",
             authDomain: "phd-bristol.firebaseapp.com",
             projectId: "phd-bristol",
             storageBucket: "phd-bristol.firebasestorage.app",
@@ -72,16 +127,18 @@
             appId: "1:559795586505:web:329eaebd889be645285418",
             measurementId: "G-5CJBSCB2WH"
         };
+        
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
         
         // Collect Prolific ID
-        const urlParams = new URLSearchParams(window.location.search);
-        const prolificID = urlParams.get('PROLIFIC_PID') || 'unknown';
+        // const urlParams = new URLSearchParams(window.location.search);
+        // const prolificID = urlParams.get('PROLIFIC_PID') || 'unknown';
         
         // Time limit for scrolling through the feed
-        const treatmentTime = 3 * 60 * 1000; // 3 minutes
+        const treatmentTime = 5 * 60 * 1000; // 5 minutes
+        const answerTime = 1.5 * 60 * 1000; // 1.5 minutes
         
         // Load all posts from csv
         let allPosts = [];
@@ -89,7 +146,7 @@
         let treatment1Posts = [];
         let treatment2Posts = [];
         function createInstagramBlockquote(link) {
-            return `<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${link}" data-instgrm-version="14" style="background:#FFF; border:0; margin:1px; max-width:470px; min-width:326px; padding:0; width:99.375%;"></blockquote><br/><br/>`;
+            return `<blockquote class="instagram-media" data-instgrm-captioned data-instgrm-permalink="${link}" data-instgrm-version="14" style="background:#FFF; border:0; margin:1px; min-width:280px; padding:0; width:99.375%;"></blockquote><br/><br/>`;
         }
         Papa.parse('posts.csv', {
             download: true,
@@ -126,6 +183,8 @@
                 const jsPsych = initJsPsych({
                     display_element: 'jspsych-target',
                     on_finish: function() {
+                        const interactionData = JSON.parse(jsPsych.data.getInteractionData().json());
+                        const csvData = jsPsych.data.get().csv();
                         const data = jsPsych.data.get().json();
                         let parsedData = JSON.parse(data);
                         // Remove 'stimulus' from each trial object
@@ -136,10 +195,14 @@
                             prolific_id: prolificID,
                             timestamp: serverTimestamp(),
                             data: parsedData,
+                            interaction: interactionData,
+                            csv: csvData
                         })
                         .then(() => {
                             console.log("Data successfully written!");
                             document.getElementById('jspsych-target').innerHTML = "<p>Thank you! You may return to Prolific.</p>";
+                            // TO DO: UPDATE PROLIFIC LINK    
+                            // window.location = "https://app.prolific.co/submissions/complete?cc=XXXXXXX"
                         })
                         .catch((error) => {
                             console.error("Error writing to Firestore: ", error);
@@ -148,9 +211,21 @@
                     }
                 });
                 
+                // capture info from Prolific
+                var prolificID = jsPsych.data.getURLVariable('PROLIFIC_PID');
+                var study_id = jsPsych.data.getURLVariable('STUDY_ID');
+                var session_id = jsPsych.data.getURLVariable('SESSION_ID');
+                jsPsych.data.addProperties({
+                    prolificID: prolificID,
+                    study_id: study_id,
+                    session_id: session_id
+                });
+                
                 // Set up control vs treatments (prevent to generate new group from same browser/day)
                 const CONDITION_KEY = 'assigned_condition';
                 const CONDITION_DATE_KEY = 'condition_date';
+                const RELOAD_COUNT_KEY = 'reload_count';
+                
                 // Get today's date as string, e.g., '2025-06-12'
                 function getTodayDateString() {
                     return new Date().toISOString().slice(0, 10);
@@ -160,10 +235,14 @@
                     const storedDate = localStorage.getItem(CONDITION_DATE_KEY);
                     const today = getTodayDateString();
                     
+                    // Get current reload count (convert to number or default to 0)
+                    let reloadCount = parseInt(localStorage.getItem(RELOAD_COUNT_KEY)) || 0;
+                    reloadCount += 1; // Increment on each page load
+                    localStorage.setItem(RELOAD_COUNT_KEY, reloadCount);
+                    
                     if (storedDate === today) {
                         // Same day — return stored condition
                         return localStorage.getItem(CONDITION_KEY);
-                        // TO DO : store information about user reloading the page
                     } else {
                         // Different day or no stored data — assign new condition
                         const conditions = ['control', 'treatment1', 'treatment2'];
@@ -175,25 +254,54 @@
                     }
                 }
                 const assigned_condition = getAssignedCondition();
-                console.log('Assigned condition:', assigned_condition);
+                const reloadCount = localStorage.getItem(RELOAD_COUNT_KEY);
+                // console.log('Assigned condition:', assigned_condition);
+                // console.log('Reload count:', reloadCount);
                 
                 // Timeline definition
                 const timeline = [];
                 
                 // Step 0 - Consent
+                const consentPage = {
+                    type: jsPsychSurveyHtmlForm,
+                    preamble: `
+                    <h2>Participant Information & Consent</h2>
+                    <p><strong>Study Title:</strong> Information Retention of Content on Social Media</p>
+                    <p><strong>Purpose of the Study:</strong> This research investigates how people process and remember different types of online communication. You will be asked to view simulated social media posts and answer questions about your impressions, memory, and opinions. You may also be asked to predict how others respond to the same content.</p>
+                    <p><strong>What You Will Do:</strong> You will have up to 5 minutes to browse posts from various topics (e.g., health, technology, environment, entertainment) followed by a questionnaire. The total duration will be approximately 10 minutes. The 5 participants whose predictions are most accurate will receive an additional £20 reward.</p>
+                    <p><strong>Voluntary Participation:</strong> Your participation is entirely voluntary. You may withdraw at any time before submitting your final responses without penalty. Simply close the browser window to exit the study.</p>
+                    <p><strong>Risks and Benefits:</strong> There are no anticipated risks in participating. While there is no direct personal benefit, you may win a £20 prize based on prediction accuracy.</p>
+                    <p><strong>Data Handling and Confidentiality:</strong> No identifying information (such as name, email, or IP address) will be collected. All data will remain completely anonymous and stored securely. Data may be used in academic publications or shared anonymously for scientific purposes. This study complies with GDPR regulations.</p>
+                    <p><strong>Contact Information:</strong> For questions, contact the researcher: <br>
+                    <em>Tie Franco Brotto, School for Policy Studies, University of Bristol</em> <br>
+                    Email: tie.francobrotto@bristol.ac.uk<br><br>
+                    If you have concerns about your rights as a participant, contact the university's research ethics committee.</p>
+                    <hr/>
+                    <p><strong>Consent</strong></p>
+                    `,
+                    html: `
+                    <label><input type="checkbox" name="consent_read" required> I confirm that I have read and understood the information provided above.</label><br><br>
+                    <label><input type="checkbox" name="consent_voluntary" required> I understand that my participation is voluntary and that I can withdraw at any time before submitting my responses.</label><br><br>
+                    <label><input type="checkbox" name="consent_data" required> I consent to the anonymous use of my data for research purposes, including potential future scientific publications or sharing.</label><br><br>
+                    `,
+                    button_label: "I Agree",
+                };
+                timeline.push(consentPage);
                 
                 // Step 1 - Intro
                 const intro = {
                     type: jsPsychHtmlButtonResponse,
-                    stimulus: `<h2>Information retention of content on social media</h2>
-                <p>This study investigates how people process different types of communication online. You’ll have up to 3 minutes to scroll through a selection of posts from random topics (health, technology, environment, entertainement, etc.) and then answer a series of questions about your impressions, memory, and opinions.</p>
-                <p>We are also testing whether people can predict other participants are answering some of the same questions. The 5 participants who make the most accurate guesses will win an additional £20.</p>
-                <p>You will have up to 3 minutes to scroll through the posts, and then complete a questionnaire afterwards. Below you should see one post as an example, make sure your browser is rendering the content. You might have to change your browser settings.</p>
-                <br/><div class="centering">
-                <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DKff6O5N8Ym/" data-instgrm-version="14" style="background:#FFF; border:0; margin:1px; max-width:470px; min-width:326px; padding:0; width:99.375%;"></blockquote>
-                </div>`,
-                    choices: ['Start'],
-                    prompt: "<p>Click the button above when you're ready to begin.</p>",
+                    stimulus: `
+                    <h2>Information retention of content on social media</h2>
+                    <p>This study investigates how people process different types of communication online. You'll have up to 5 minutes to scroll through a selection of posts from random topics (health, technology, environment, entertainement, etc.) and then answer a series of questions about your impressions, memory, and opinions.</p>
+                    <p>We are also testing whether people can predict other participants are answering some of the same questions. The 5 participants who make the most accurate guesses will win an additional £20.</p>
+                    <p>You will have up to 5 minutes to scroll through the posts, and then complete a questionnaire afterwards. Below you should see one post as an example, make sure your browser is rendering the content. You might have to change your browser settings.</p>
+                    <br/><div class="centering">
+                    <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DKff6O5N8Ym/" data-instgrm-version="14" style="background:#FFF; border:0; margin:1px; min-width:280px; padding:0; width:99.375%;"></blockquote>
+                    </div>
+                    `,
+                    choices: ["I'm ready to start"],
+                    // prompt: "<p>Click the button above when you're ready to begin.</p>",
                     on_load: () => {
                         // After stimulus is inserted, process Instagram embeds
                         if (window.instgrm && window.instgrm.Embeds) {
@@ -207,11 +315,11 @@
                 const control_trials = {
                     type: jsPsychHtmlButtonResponse,
                     stimulus: `<h2>Instagram posts</h2>
-                    <p>You will have up to 3 minutes to scroll through the videos, and then complete a questionnaire afterwards.</p>
+                    <p>You will have up to 5 minutes to scroll through the videos, and then complete a questionnaire afterwards.</p></br></br>
                     <div class="centering">`
                     + controlGroup.join('')
                     + `</div>`,
-                    choices: ['Next'],
+                    choices: ['All memorised!'],
                     trial_duration: treatmentTime,
                     on_load: () => {
                         // After stimulus is inserted, process Instagram embeds
@@ -223,11 +331,11 @@
                 const treatment1_trials = {
                     type: jsPsychHtmlButtonResponse,
                     stimulus: `<h2>Instagram posts</h2>
-                    <p>You will have up to 3 minutes to scroll through the videos, and then complete a questionnaire afterwards.</p>
+                    <p>You will have up to 5 minutes to scroll through the videos, and then complete a questionnaire afterwards.</p></br></br>
                     <div class="centering">`
                     + treatment1Group.join('')
                     + `</div>`,
-                    choices: ['Next'],
+                    choices: ['All memorised!'],
                     trial_duration: treatmentTime,
                     on_load: () => {
                         // After stimulus is inserted, process Instagram embeds
@@ -239,11 +347,11 @@
                 const treatment2_trials = {
                     type: jsPsychHtmlButtonResponse,
                     stimulus: `<h2>Instagram posts</h2>
-                    <p>You will have up to 3 minutes to scroll through the videos, and then complete a questionnaire afterwards.</p>
+                    <p>You will have up to 5 minutes to scroll through the videos, and then complete a questionnaire afterwards.</p></br></br>
                     <div class="centering">`
                     + treatment2Group.join('')
                     + `</div>`,
-                    choices: ['Next'],
+                    choices: ['All memorised!'],
                     trial_duration: treatmentTime,
                     on_load: () => {
                         // After stimulus is inserted, process Instagram embeds
@@ -254,7 +362,10 @@
                 };
                 // Save condition
                 timeline.forEach(trial => {
-                    trial.data = { condition: assigned_condition };
+                    trial.data = { 
+                        condition: assigned_condition,
+                        reload: reloadCount
+                    };
                 });
                 // Only push the randomly selected group
                 if (assigned_condition === 'control') {
@@ -265,173 +376,152 @@
                     timeline.push(treatment2_trials);
                 }
                 
-                const memory_check = {
+                // Step 3 - Reminder of instructions
+                const reminder = {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: `
+                    <h2>Information retention of content on social media</h2>
+                    <p>There will be four block of questions: you will see a number of sentences and first make a quick guess of the percentage of all participants in this study who agree with each statement, then indicate the percentage of your close friends that would agree with each sentence, and afterwards respond whether you agree or disagree (or neither) with each sentence.</p>
+                    <p>Finally, you will see a number of questions that test your memory of key aspects of the posts you just saw</p>
+                    <p>You'll have only 90 seconds to answer each block. Remember, the 5 participants who make the most accurate guesses in the first block and remember the most details in the last block will win an additional £20.</p>
+                    `,
+                    choices: ["I'm ready"],
+                    // prompt: "<p>Click the button above when you're ready to begin.</p>",
+                    trial_duration: treatmentTime,
+                };
+                timeline.push(reminder); 
+                
+                // List of questions
+                const Qs = [
+                {prompt: "limits the amount of meat and dairy products an individual can purchase per week.", name: "meat_dairy"},
+                // {prompt: "increases the fuel duty tax that drivers pay on petrol and diesel.", name: "fuel_duty"},
+                {prompt: "introduces a blanket tax on all airfares, increasing the price of flights by 50%.", name: "airfare_tax"},
+                // {prompt: "bans the sale and distribution of all single-use plastic products.", name: "plastic_ban"},
+                {prompt: "requires wealthy countries to take primary responsibility for addressing global climate change.", name: "climate_responsibility"},
+                {prompt: "requires all news organizations to present multiple opposing viewpoints when covering controversial issues.", name: "news_opposing_views"},
+                // {prompt: "restricts the use of AI technologies, such as deepfakes, to prevent potential threats to political stability.", name: "deepfake_restrictions"},
+                // {prompt: "requires all social media platforms to clearly label content generated by artificial intelligence.", name: "ai_labeling"},
+                // {prompt: "introduces a Universal Basic Income (UBI) to offset job losses caused by automation.", name: "ubi_automation"},
+                {prompt: "regulates the sale and marketing of highly processed foods to address public health risks.", name: "processed_food_regulation"},
+                {prompt: "introduces mandatory mental health screening programs in all schools and workplaces.", name: "mental_health_screening"}
+                ];
+                shuffle(Qs);
+                
+                // Step 4 - Outgroup predictions
+                const predictOutgroup = {
                     type: jsPsychSurveyHtmlForm,
-                    preamble: "<h2>Memory & Media Check</h2><p>Please answer the following questions as best as you can.</p>",
+                    preamble: `
+                    <h2>Making predictions</h2>
+                    <p>Estimate the percentage of <strong>all participants</strong> who agreed with the sentences below. All participants in this study are aged 18-25 and live in the U.K.</p>
+                    <p>For each statement, enter a number between 0 and 100, where:</p>
+                    <ul>
+                    <li><strong>0</strong> means you think no participants agreed with the statement, and</li>
+                    <li><strong>100</strong> means you think all participants agreed with the statement.</li>
+                    </ul>
+                    <p>For example, if you think half of the participants agreed with a statement, you would enter "<strong>50</strong>".</p>
+                    <p>The 5 participants who make the most accurate guesses will each win an additional <strong>£20 prize</strong>.</p>
+                    <hr/>
+                    <p><strong>The government should pass legislation that...</strong></p>
+                    `,
+                    html: Qs.map(q => `
+                    <div class="question-row">
+                    <div class="question-text">"${q.prompt}"</div>
+                    <input class="question-input" type="number" name="in_${q.name}" min="0" max="100" required>
+                    </div></br>
+                    `).join(''),
+                    button_label: "Next",
+                    trial_duration: answerTime,
+                };
+                timeline.push(predictOutgroup);
+                
+                
+                // Step 5 - Ingroup predictions
+                const predictIngroup = {
+                    type: jsPsychSurveyHtmlForm,
+                    preamble: `
+                    <h2>Making more predictions</h2>
+                    <p>Estimate the percentage of <strong>your close friends</strong> who would agree with the same sentences as before.</p>
+                    <hr/>
+                    <p><strong>The government should pass legislation that...</strong></p>
+                    `,
+                    html: Qs.map(q => `
+                    <div class="question-row">
+                    <div class="question-text">"${q.prompt}"</div>
+                    <input class="question-input" type="number" name="in_${q.name}" min="0" max="100" required>
+                    </div></br>
+                    `).join(''),
+                    button_label: "Next",
+                    trial_duration: answerTime,
+                };
+                timeline.push(predictIngroup);
+                
+                
+                // Step 6 - Opinion
+                const survey = {
+                    type: jsPsychSurveyLikert,
+                    preamble: `
+                    <h2>Personal opinions</h2>
+                    <p>Please indicate your own personal opinion. This entire experiment is conducted anonymously, we will only use your personal opinions to calculate the average across all participants.</p>
+                    <hr/>
+                    <p><strong>The government should pass legislation that...</strong></p>
+                    `,
+                    questions: Qs.map(q => ({
+                        prompt: q.prompt,
+                        name: q.name,
+                        labels: ["Disagree","Neutral","Agree"],
+                        required: true
+                    })),
+                    scale_width: 500,
+                    button_label: "Next",
+                    trial_duration: answerTime,
+                };
+                timeline.push(survey);
+                
+                
+                // Step 7 - Memory
+                const memoryCheck = {
+                    type: jsPsychSurveyHtmlForm,
+                    preamble: `
+                    <h2>Memory check</h2>
+                    <p>Finally, please answer the following questions as best as you can. We are testing how much information you can retain after reflecting on the previous statements</p>
+                    `,
                     html: `
                     <div>
                     <p><strong>Please list the names of all people mentioned in these posts.</strong></p>
                     <textarea name="names" rows="2" cols="50"></textarea><br><br>
-
-                    <p><strong>The two main topics randomly assigned to you were health and environment. How many posts related to health did you see?</strong></p>
+                    
+                    <p><strong>The two main topics randomly assigned were health and environment. How many posts related to health did you see?</strong></p>
                     <input type="number" name="health_count"><br><br>
-
+                    
                     <p><strong>How often do you see environmental content like this on social media or elsewhere?</strong></p>
-                    <label><input type="radio" name="env_frequency" value="never" required> Never</label><br>
-                    <label><input type="radio" name="env_frequency" value="rarely"> Rarely</label><br>
-                    <label><input type="radio" name="env_frequency" value="sometimes"> Once in a while</label><br>
-                    <label><input type="radio" name="env_frequency" value="daily"> Every day or so</label><br>
-                    <label><input type="radio" name="env_frequency" value="all_time"> All of the time</label><br>
-
-                    <p><strong>Which sources do you see content of any type most often? (Select all that apply)</strong></p>
-                    <label><input type="checkbox" name="sources" value="bbc"> BBC</label><br>
-                    <label><input type="checkbox" name="sources" value="guardian"> Guardian</label><br>
-                    <label><input type="checkbox" name="sources" value="sky"> Sky News</label><br>
-                    <label><input type="checkbox" name="sources" value="independent"> The Independent</label><br>
-                    <label><input type="checkbox" name="sources" value="channelfour"> Channel 4</label><br>
-                    <label><input type="checkbox" name="sources" value="unilad"> UNILAD/LADbible</label><br>
-                    <label><input type="checkbox" name="sources" value="other"> Other</label><br>
-                    <label><input type="checkbox" name="sources" value="none"> None</label><br><br>
+                    ${["never","rarely","sometimes","daily","all_time"].map(v=>
+                    `<label><input type="radio" name="env_freq" value="${v}" required> ${v.replace(/_/g,' ')}</label><br>`
+                    ).join('')}
+                    
+                    <p><strong>Which sources do you see most often? (Select all)</strong></p>
+                    ${["BBC","guardian","sky","independent","channelfour","unilad","other","none"].map(v=>
+                    `<label><input type="checkbox" name="sources" value="${v}"> ${v.charAt(0).toUpperCase()+v.slice(1)}</label><br>`
+                    ).join('')}
                     </div>
                     `,
-                    button_label: "Continue"
+                    button_label: "Next",
+                    trial_duration: answerTime,
                 };
+                timeline.push(memoryCheck);
                 
-                timeline.push(memory_check);
-                
-                
-                
-                // Step 4 - Questionnaire survey    
-                const survey_questions = [
-                {
-                    prompt: "Limiting the amount of meat and dairy products people can buy per week",
-                    name: "meat_dairy_limit",
-                    labels: ["Disagree", "Neutral", "Agree"],
-                    required: true
-                },
-                {
-                    prompt: "Increase the Fuel Duty tax, the tax drivers pay on fuel",
-                    name: "fuel_tax",
-                    labels: ["Disagree", "Neutral", "Agree"],
-                    required: true
-                },
-                {
-                    prompt: "Blanket tax on all air fares, increasing the prices of flights by 50%",
-                    name: "flight_tax",
-                    labels: ["Disagree", "Neutral", "Agree"],
-                    required: true
-                },
-                {
-                    prompt: "Banning all single-use plastic",
-                    name: "plastic_ban",
-                    labels: ["Disagree", "Neutral", "Agree"],
-                    required: true
-                },
-                {
-                    prompt: "Wealthy countries should take on most of the responsibility of tackling climate change",
-                    name: "rich_country_responsibility",
-                    labels: ["Disagree", "Neutral", "Agree"],
-                    required: true
-                },
-                {
-                    prompt: "News organizations should be legally required to present multiple sides of controversial issues",
-                    name: "news_balance",
-                    labels: ["Disagree", "Neutral", "Agree"],
-                    required: true
-                },
-                {
-                    prompt: "Deepfake videos will become a serious threat to political stability in the next decade",
-                    name: "deepfake_threat",
-                    labels: ["Disagree", "Neutral", "Agree"],
-                    required: true
-                },
-                {
-                    prompt: "Social media platforms should be required to label all AI-generated content",
-                    name: "ai_labeling",
-                    labels: ["Disagree", "Neutral", "Agree"],
-                    required: true
-                },
-                {
-                    prompt: "Universal Basic Income (UBI) should be introduced to address job losses from automation",
-                    name: "ubi_automation",
-                    labels: ["Disagree", "Neutral", "Agree"],
-                    required: true
-                },
-                {
-                    prompt: "Governments should regulate the sale of highly processed foods to reduce obesity",
-                    name: "food_regulation",
-                    labels: ["Disagree", "Neutral", "Agree"],
-                    required: true
-                },
-                {
-                    prompt: "Mandatory mental health screenings should be introduced in schools and workplaces",
-                    name: "mental_health_screening",
-                    labels: ["Disagree", "Neutral", "Agree"],
-                    required: true
-                }
-                ];
-                // Randomize question order
-                const randomized_questions = jsPsych.randomization.shuffle(survey_questions);
-                const survey = {
-                    type: jsPsychSurveyLikert,
-                    questions: randomized_questions,
-                    preamble: "<p>Please indicate your opinion on the following statements:</p>",
-                    scale_width: 500, // Optional: control the width of the Likert scale
-                    button_label: "Submit"
-                };
-                timeline.push(survey);
-                
-                // Step 5 - Guessing how many % of others agreed
-                const prediction_questions_groups = randomized_questions.map((question, index) => {
-                    return {
-                        prompt: `---<br><br><em>"${question.prompt}"</em><br>
-                <div class="group-prediction-container">
-                <div class="group-prediction-item">
-                <label>Ingroup participants (%):</label><br>
-                <input type="text" name="prediction_ingroup_${index}" placeholder="0-100" required pattern="^([0-9]{1,2}(\\.[0-9]+)?|100(\\.0+)?)$">
-                </div>
-                <div class="group-prediction-item">
-                <label>Outgroup participants (%):</label><br>
-                <input type="text" name="prediction_outgroup_${index}" placeholder="0-100" required pattern="^([0-9]{1,2}(\\.[0-9]+)?|100(\\.0+)?)$">
-                </div>
-                </div>`,
-                        required: false // HTML itself handles required via input
-                    };
-                });
-                const prediction_survey_groups = {
-                    type: jsPsychSurveyHtmlForm,
-                    preamble: `<p>Estimate the percentage of <strong>Ingroup and Outgroup participants</strong> who selected "Agree" for each of those previous statements. All participants in this study are aged 18-25 and live in the U.K.</p>
-                    <p>Enter a number between 0 and 100 for each group, where 0 means none and 100 means all of them. For example, if you think half of the Ingroup agreed, enter "50" for Ingroup. The 5 participants who make the most accurate guesses will win an additional £20.</p>`,
-                    html: prediction_questions_groups.map(q => q.prompt).join(''),
-                    button_label: "Submit Predictions",
-                    on_finish: function(data) {
-                        const responses = data.response;  // responses from the form inputs as an object
-                        // Validate all values:
-                        for (const key in responses) {
-                            const num = Number(responses[key]);
-                            if (isNaN(num) || num < 0 || num > 100) {
-                                alert(`Please enter valid numbers between 0 and 100 for all fields.`);
-                                jsPsych.pauseExperiment();
-                                return;
-                            }
-                            responses[key] = num;
-                        }
-                        // data.group_predictions = responses;
-                    }
-                };
-                timeline.push(prediction_survey_groups);
                 
                 // Step 6 - Outro
                 const outro = {
                     type: jsPsychHtmlButtonResponse,
-                    stimulus: "<p>Final test screen. Click to finish.</p>",
-                    choices: ["Finish"]
+                    stimulus: "<p>Thank you for participating.</p>",
+                    choices: ["Submit my responses"],
+                    trial_duration: answerTime,
                 };
                 timeline.push(outro);
                 
                 jsPsych.run(timeline);
             }
-        });  
+        });
         
     </script>
 </body>
