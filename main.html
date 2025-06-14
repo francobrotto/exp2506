@@ -179,48 +179,6 @@
                 shuffle(treatment1Group);
                 shuffle(treatment2Group);
                 
-                // Initialize jsPsych instance
-                const jsPsych = initJsPsych({
-                    display_element: 'jspsych-target',
-                    on_finish: function() {
-                        const interactionData = JSON.parse(jsPsych.data.getInteractionData().json());
-                        const csvData = jsPsych.data.get().csv();
-                        const data = jsPsych.data.get().json();
-                        let parsedData = JSON.parse(data);
-                        // Remove 'stimulus' from each trial object
-                        parsedData.forEach(trial => {
-                            delete trial.stimulus;
-                        });
-                        addDoc(collection(db, "experimentData"), {
-                            prolific_id: prolificID,
-                            timestamp: serverTimestamp(),
-                            data: parsedData,
-                            interaction: interactionData,
-                            csv: csvData
-                        })
-                        .then(() => {
-                            console.log("Data successfully written!");
-                            document.getElementById('jspsych-target').innerHTML = "<p>Thank you! You may return to Prolific.</p>";
-                            // TO DO: UPDATE PROLIFIC LINK    
-                            // window.location = "https://app.prolific.co/submissions/complete?cc=XXXXXXX"
-                        })
-                        .catch((error) => {
-                            console.error("Error writing to Firestore: ", error);
-                            document.getElementById('jspsych-target').innerHTML = "<p>Error saving data. Please contact the researcher.</p>";
-                        });
-                    }
-                });
-                
-                // capture info from Prolific
-                var prolificID = jsPsych.data.getURLVariable('PROLIFIC_PID');
-                var study_id = jsPsych.data.getURLVariable('STUDY_ID');
-                var session_id = jsPsych.data.getURLVariable('SESSION_ID');
-                jsPsych.data.addProperties({
-                    prolificID: prolificID,
-                    study_id: study_id,
-                    session_id: session_id
-                });
-                
                 // Set up control vs treatments (prevent to generate new group from same browser/day)
                 const CONDITION_KEY = 'assigned_condition';
                 const CONDITION_DATE_KEY = 'condition_date';
@@ -255,8 +213,52 @@
                 }
                 const assigned_condition = getAssignedCondition();
                 const reloadCount = localStorage.getItem(RELOAD_COUNT_KEY);
-                // console.log('Assigned condition:', assigned_condition);
-                // console.log('Reload count:', reloadCount);
+                
+                
+                // capture info from Prolific
+                function getURLParameter(name) {
+                    return new URLSearchParams(window.location.search).get(name);
+                }
+                
+                const prolificID = getURLParameter('PROLIFIC_PID');
+                const study_id = getURLParameter('STUDY_ID');
+                const session_id = getURLParameter('SESSION_ID');
+                
+                // Initialize jsPsych instance
+                const jsPsych = initJsPsych({
+                    display_element: 'jspsych-target',
+                    on_finish: function() {
+                        const interactionData = JSON.parse(jsPsych.data.getInteractionData().json());
+                        const csvData = jsPsych.data.get().csv();
+                        const data = jsPsych.data.get().json();
+                        let parsedData = JSON.parse(data);
+                        // Remove 'stimulus' from each trial object
+                        parsedData.forEach(trial => {
+                            delete trial.stimulus;
+                        });
+                        addDoc(collection(db, "version1-0"), {
+                            prolific_id: prolificID,
+                            study_id: study_id,
+                            session_id: session_id,
+                            condition: assigned_condition,
+                            reload: reloadCount,
+                            timestamp: serverTimestamp(),
+                            data: parsedData,
+                            interaction: interactionData,
+                            csv: csvData
+                        })
+                        .then(() => {
+                            console.log("Data successfully written!");
+                            document.getElementById('jspsych-target').innerHTML = "<p>Thank you! You may return to Prolific.</p>";
+                            // TO DO: UPDATE PROLIFIC LINK    
+                            // window.location = "https://app.prolific.co/submissions/complete?cc=XXXXXXX"
+                        })
+                        .catch((error) => {
+                            console.error("Error writing to Firestore: ", error);
+                            document.getElementById('jspsych-target').innerHTML = "<p>Error saving data. Please contact the researcher.</p>";
+                        });
+                    }
+                });
                 
                 // Timeline definition
                 const timeline = [];
@@ -360,13 +362,7 @@
                         }
                     }
                 };
-                // Save condition
-                timeline.forEach(trial => {
-                    trial.data = { 
-                        condition: assigned_condition,
-                        reload: reloadCount
-                    };
-                });
+                
                 // Only push the randomly selected group
                 if (assigned_condition === 'control') {
                     timeline.push(control_trials);
@@ -426,7 +422,7 @@
                     html: Qs.map(q => `
                     <div class="question-row">
                     <div class="question-text">"${q.prompt}"</div>
-                    <input class="question-input" type="number" name="in_${q.name}" min="0" max="100" required>
+                    <input class="question-input" type="number" name="out_${q.name}" min="0" max="100" required>
                     </div></br>
                     `).join(''),
                     button_label: "Next",

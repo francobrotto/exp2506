@@ -21,7 +21,7 @@ Questionnaire V2
 
 Analysis V1
 
-+ Generate data with _Simulation Modes_
++ Generate data with _Simulation Modes_ - alright so apparently that won't work because simulate is very bad with forms
 + Clean the csv
 + Write the analysis
 
@@ -37,4 +37,6 @@ Analysis V1
 
 When I uploaded the main.html for the first time, I got an email warning me that anyone with read access can view _exposed secrets_. I panicked and rotated the key, only to then realise that I wouldn't be able to really hide a key and use it here (or at least I don't know how to do that). After setting up a website restriction I feel like it's okay to have the key exposed.
 
-I forgot how I set up VS Code to give export.py access to Firebase. 
+To set up VS Code to give export.py access to Firebase, I need to get my service account JSON key file from: https://console.cloud.google.com/iam-admin/serviceaccounts (select project, generate and download a JSON key file) and then run the line below in the terminal. If I lose the JSON file, I have to create a new key and delete the old one.
+
+`export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/service-account-key.json"`

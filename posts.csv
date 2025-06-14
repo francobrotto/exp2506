@@ -1,41 +1,41 @@
 ﻿description,group,author,random,link
-disruptive - m25,treatment2,metro uk,0.077518211,https://www.instagram.com/p/C9mIYNeN5MI/
-nondisruptive - green party,treatment1,itvnews,0.541886182,https://www.instagram.com/p/DKkJFh8Nt1u/
 disruptive - prison,treatment2,glamouruk,0.05092135,https://www.instagram.com/p/CzynMGeMvcR/
-environment,control,none,0.931399596,https://www.instagram.com/p/DHqkX7DTcdk/
-nondisruptive,treatment1,89percent,0.949897631,https://www.instagram.com/p/DIxyIZDPe8D/
-health,all,none,0.92429716,https://www.instagram.com/p/DJjo8hsAZtX/
-disruptive - stonehenge,treatment2,metro uk,0.958058403,https://www.instagram.com/p/C8ZlIdEtatR/
+disruptive - m25,treatment2,metro uk,0.077518211,https://www.instagram.com/p/C9mIYNeN5MI/
+environment,control,sam bentley,0.083415351,https://www.instagram.com/reel/DKzolRQIce9/
 environment,control,none,0.130506983,https://www.instagram.com/p/DEXsF0Dvu_N/
+health,all,none,0.153448847,https://www.instagram.com/p/DI6nS_8MfzY/
+environment,control,none,0.174028081,https://www.instagram.com/p/DIgirY-y487/
+health,all,none,0.223820706,https://www.instagram.com/p/DJoesA1TiyV/
+random,out,the economist,0.241313485,https://www.instagram.com/p/DKrzU7AO0z1/
+disruptive - jail,treatment2b,jso,0.254936005,https://www.instagram.com/p/DJFTvaOq26z/
+health - luigi mangione,out,novara,0.259213638,https://www.instagram.com/p/DKwwhE4t_y1/
+disruptive - costs,treatment2b,bbc,0.262095006,https://www.instagram.com/p/C0jRIp1sTKG/
+environment,control,none,0.276654687,https://www.instagram.com/p/DHOe2o3IF7A/
+intro,intro,none,0.299735305,https://www.instagram.com/p/DKff6O5N8Ym/
+random,out,none,0.332992424,https://www.instagram.com/p/DJvf6hZtZ_W/
+disruptive - directaction,treatment2,jso,0.359742479,https://www.instagram.com/p/DJo1AhHofnn/
+disruptive - stonehenge,treatment2b,dazed,0.373756452,https://www.instagram.com/p/C8Zl_1LK0Uc/
 nondisruptive,treatment1,itvnews,0.377658057,https://www.instagram.com/p/DKZ01Z0Mz3E/
-disruptive - airjets,treatment2b,skynews,0.951579482,https://www.instagram.com/p/C8bbLRPsTzd/
+nondisruptive - green party,treatment1,itvnews,0.541886182,https://www.instagram.com/p/DKkJFh8Nt1u/
 nondisruptive,treatment1,citizens arrest,0.565073977,https://www.instagram.com/p/DIfz2Lco19-/
-nondisruptive,treatment1,none,0.787441042,https://www.instagram.com/p/C9u3EwEMowJ/
-disruptive - van gogh,treatment2b,jso,0.995563079,https://www.instagram.com/p/CzTc7GaNRu5/
-disruptive - costs,treatment2,bbc,0.262095006,https://www.instagram.com/p/C0jRIp1sTKG/
+disruptive - stonehenge,treatment2b,spectator,0.605508515,https://www.instagram.com/p/C8cQGTqNzkX/
 disruptive - wifi,treatment2,sts,0.699364638,https://www.instagram.com/p/DKKk0MAs8I9/
 disruptive - wifi,treatment2b,sts,0.705806379,https://www.instagram.com/p/DHjtUgnM-1j/
-random,all,none,0.332992424,https://www.instagram.com/p/DJvf6hZtZ_W/
-disruptive - sports,treatment2b,reasoned,0.881323528,https://www.instagram.com/p/Csy6CakLJEe/
-environment,control,sam bentley,0.083415351,https://www.instagram.com/reel/DKzolRQIce9/
+nondisruptive,treatment1,citizens arrest,0.766916642,https://www.instagram.com/p/DIQXKVSN5zF/
+nondisruptive,treatment1,none,0.787441042,https://www.instagram.com/p/C9u3EwEMowJ/
+environment,control,none,0.796585347,https://www.instagram.com/p/DKm98EqIMMw/
 random,all,veritassium,0.817307428,https://www.instagram.com/p/DHTwaJ8ivnq/
-disruptive - directaction,treatment2,jso,0.359742479,https://www.instagram.com/p/DJo1AhHofnn/
+environment,control,none,0.841997418,https://www.instagram.com/p/DKiCBfQBL85/
+random,brokenlink,independent,0.866570489,https://www.instagram.com/reel/DKxG2EHi3vK/
+disruptive - sports,treatment2b,reasoned,0.881323528,https://www.instagram.com/p/Csy6CakLJEe/
+disruptive - hundreds,treatment2,jso,0.897418232,https://www.instagram.com/p/DIv-5onNEjW/
+health,out,none,0.92429716,https://www.instagram.com/p/DJjo8hsAZtX/
+environment,control,none,0.931399596,https://www.instagram.com/p/DHqkX7DTcdk/
+disruptive - van gogh,treatment2,artnews,0.934977683,https://www.instagram.com/p/DAbdoDSO2l0/
+nondisruptive,treatment1,89percent,0.949897631,https://www.instagram.com/p/DIxyIZDPe8D/
+disruptive - airjets,treatment2b,skynews,0.951579482,https://www.instagram.com/p/C8bbLRPsTzd/
+disruptive - stonehenge,treatment2b,metro uk,0.958058403,https://www.instagram.com/p/C8ZlIdEtatR/
 disruptive - underground,treatment2,sts,0.981794331,https://www.instagram.com/p/DIQYzxitIeI/
 health - china,brokenlink,none,0.994978067,https://www.instagram.com/p/DJoW2ltRRe9/
-random,all,the economist,0.241313485,https://www.instagram.com/p/DKrzU7AO0z1/
+disruptive - van gogh,treatment2b,jso,0.995563079,https://www.instagram.com/p/CzTc7GaNRu5/
 nondisruptive,treatment1,chris packham,0.995587523,https://www.instagram.com/p/DJcJkzLK37a/
-health,all,none,0.153448847,https://www.instagram.com/p/DI6nS_8MfzY/
-health,all,none,0.223820706,https://www.instagram.com/p/DJoesA1TiyV/
-disruptive - stonehenge,treatment2b,spectator,0.605508515,https://www.instagram.com/p/C8cQGTqNzkX/
-environment,control,none,0.174028081,https://www.instagram.com/p/DIgirY-y487/
-disruptive - van gogh,treatment2,artnews,0.934977683,https://www.instagram.com/p/DAbdoDSO2l0/
-intro,intro,none,0.299735305,https://www.instagram.com/p/DKff6O5N8Ym/
-environment,control,none,0.276654687,https://www.instagram.com/p/DHOe2o3IF7A/
-nondisruptive,treatment1,citizens arrest,0.766916642,https://www.instagram.com/p/DIQXKVSN5zF/
-disruptive - stonehenge,treatment2b,dazed,0.373756452,https://www.instagram.com/p/C8Zl_1LK0Uc/
-disruptive - jail,treatment2b,jso,0.254936005,https://www.instagram.com/p/DJFTvaOq26z/
-health - luigi mangione,all,novara,0.259213638,https://www.instagram.com/p/DKwwhE4t_y1/
-disruptive - hundreds,treatment2,jso,0.897418232,https://www.instagram.com/p/DIv-5onNEjW/
-environment,control,none,0.796585347,https://www.instagram.com/p/DKm98EqIMMw/
-random,brokenlink,independent,0.866570489,https://www.instagram.com/reel/DKxG2EHi3vK/
-environment,control,none,0.841997418,https://www.instagram.com/p/DKiCBfQBL85/

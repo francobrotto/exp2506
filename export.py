@@ -40,6 +40,6 @@ def export_firestore_to_csv(collection_name, output_csv):
     print(f"Exported {len(data)} documents to {output_csv}")
 
 if __name__ == "__main__":
-    collection = "experimentData"  # Your Firestore collection name
+    collection = "version1-0"  # Firestore collection name
     output_file = "firestore_export_flat.csv"
     export_firestore_to_csv(collection, output_file)
