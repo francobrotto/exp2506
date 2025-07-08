@@ -177,43 +177,7 @@
                 }
                 shuffle(controlGroup);
                 shuffle(treatment1Group);
-                shuffle(treatment2Group);
-                
-                // Set up control vs treatments (prevent to generate new group from same browser/day)
-                const CONDITION_KEY = 'assigned_condition';
-                const CONDITION_DATE_KEY = 'condition_date';
-                const RELOAD_COUNT_KEY = 'reload_count';
-                
-                // Get today's date as string, e.g., '2025-06-12'
-                function getTodayDateString() {
-                    return new Date().toISOString().slice(0, 10);
-                }
-                // Control which condition the participant is assigned to
-                function getAssignedCondition() {
-                    const storedDate = localStorage.getItem(CONDITION_DATE_KEY);
-                    const today = getTodayDateString();
-                    
-                    // Get current reload count (convert to number or default to 0)
-                    let reloadCount = parseInt(localStorage.getItem(RELOAD_COUNT_KEY)) || 0;
-                    reloadCount += 1; // Increment on each page load
-                    localStorage.setItem(RELOAD_COUNT_KEY, reloadCount);
-                    
-                    if (storedDate === today) {
-                        // Same day — return stored condition
-                        return localStorage.getItem(CONDITION_KEY);
-                    } else {
-                        // Different day or no stored data — assign new condition
-                        const conditions = ['control', 'treatment1', 'treatment2'];
-                        const assigned_condition = jsPsych.randomization.sampleWithoutReplacement(conditions, 1)[0];
-                        // Store it
-                        localStorage.setItem(CONDITION_KEY, assigned_condition);
-                        localStorage.setItem(CONDITION_DATE_KEY, today);
-                        return assigned_condition;
-                    }
-                }
-                const assigned_condition = getAssignedCondition();
-                const reloadCount = localStorage.getItem(RELOAD_COUNT_KEY);
-                
+                shuffle(treatment2Group);                
                 
                 // capture info from Prolific
                 function getURLParameter(name) {
@@ -259,6 +223,41 @@
                         });
                     }
                 });
+                
+                // Set up control vs treatments (prevent to generate new group from same browser/day)
+                const CONDITION_KEY = 'assigned_condition';
+                const CONDITION_DATE_KEY = 'condition_date';
+                const RELOAD_COUNT_KEY = 'reload_count';
+                
+                // Get today's date as string, e.g., '2025-06-12'
+                function getTodayDateString() {
+                    return new Date().toISOString().slice(0, 10);
+                }
+                // Control which condition the participant is assigned to
+                function getAssignedCondition() {
+                    const storedDate = localStorage.getItem(CONDITION_DATE_KEY);
+                    const today = getTodayDateString();
+                    
+                    // Get current reload count (convert to number or default to 0)
+                    let reloadCount = parseInt(localStorage.getItem(RELOAD_COUNT_KEY)) || 0;
+                    reloadCount += 1; // Increment on each page load
+                    localStorage.setItem(RELOAD_COUNT_KEY, reloadCount);
+                    
+                    if (storedDate === today) {
+                        // Same day — return stored condition
+                        return localStorage.getItem(CONDITION_KEY);
+                    } else {
+                        // Different day or no stored data — assign new condition
+                        const conditions = ['control', 'treatment1', 'treatment2'];
+                        const assigned_condition = jsPsych.randomization.sampleWithoutReplacement(conditions, 1)[0];
+                        // Store it
+                        localStorage.setItem(CONDITION_KEY, assigned_condition);
+                        localStorage.setItem(CONDITION_DATE_KEY, today);
+                        return assigned_condition;
+                    }
+                }
+                const assigned_condition = getAssignedCondition();
+                const reloadCount = localStorage.getItem(RELOAD_COUNT_KEY);
                 
                 // Timeline definition
                 const timeline = [];
