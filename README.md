@@ -2,22 +2,35 @@
 
 I'm using jsPsych to design this simple experiment. The data is stored with Firebase, and I use the export.py script to extract all of the data as a JSON and "flatten" it to a csv. I then use R to analyse the data. This is the first time I'm using this set up, so there is a lot that I'm learning. I will document what I learn here.
 
-V1
+Tool and questionnaire V1
 
-+ Store information about participant reloading the page - Done
-+ Record browser interactions - Done
-+ Integrating with Prolific - Done but need to test with Prolific (see https://www.jspsych.org/v8/overview/prolific/)
-+ Make posts full width on mobile - Done
-+ Split and reorder the questions: guess general, guess friends, your answers, memory - Done
-+ Add first page with consent etc. - Done
++ Store information about participant reloading the page
++ Record browser interactions
++ Integrating with Prolific - but need to test with Prolific (see https://www.jspsych.org/v8/overview/prolific/)
++ Make posts full width on mobile
++ Split and reorder the questions: guess general, guess friends, your answers, memory
++ Add first page with consent etc.
++ Center and style bigger buttons
+
+Design and power analysis V1
+
++ Use D-optimisation to select the fractional factorial design of the experiment
++ Simulate a dataset based on the optimised design
++ Run a power analysis
++ Plot the power for each regression with semPlot
 
 ### To do list 
 
-Questionnaire V2
+Tool and questionnaire V2
 
-+ Media Preloading
++ I need to run a pilot to check my manipulation. What is actually changing across the groups?
++ interaction with counter movement, like related to inoculation. which overcomes the other?
++ Media Preloading?
 + Automatic Progress Bar
-+ Center and style bigger buttons
++ Maybe I should add other statements in the main question, related to considering voting for candidates that a b c, and how often people talk positively about climate issues? I don't know, something that would indicate other forms of civic action? But then this is not about measuring action anyways, so I don't know what makes sense. Like "being a climate activist is kinda cool". Or maybe some unrelated negative things, like issues with immigration or something? Like more related to backfire effects.
++ Should I change the treatment nondisruptive to something like unusual supporters, like farmers or something?
++ Add something at the end like "we are doing similar studies in the future that you can participate, which topics would you be most interested to read about:" and a checkbox if they would like to participate
++ not every treatment needs to hold ecological validity, some can be there just to make a hypothetical point
 
 Analysis V1
 
