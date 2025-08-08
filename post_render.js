@@ -18,18 +18,25 @@ function renderPosts(container, posts) {
         } 
         else if (post.type === 'carousel') {
             mediaHTML = `<div class="carousel" data-idx="${idx}">
-            ${post.media.map((src, i) => `
-            <img src="${src}" class="${i === 0 ? 'active' : ''}">
-            `).join('')}
+            ${post.media.map((src, i) => {
+            if (/\.(mp4|webm|ogg)$/i.test(src)) {
+                return `
+                    <video class="${i === 0 ? 'active' : ''}" muted autoplay loop playsinline>
+                    <source src="${src}">Your browser does not support the video tag.
+                    </video>
+                `;
+            } else {
+                return `<img src="${src}" class="${i === 0 ? 'active' : ''}">`;
+            } }).join('')}
             <button class="prev">&#10094;</button>
-            <button class="next">&#10095;</button>
-            </div>
-            `;
-        } 
+        <button class="next">&#10095;</button>
+    </div>
+    `;
+        }
         else if (post.type === 'video') {
             mediaHTML = `
           <div class="video-wrapper">
-          <video width="100%" muted autoplay loop playsinline>
+          <video muted autoplay loop playsinline>
           <source src="${post.media}" type="video/mp4">Your browser does not support the video tag.
           </video>
           <button class="mute-btn" aria-label="Toggle audio">
@@ -113,21 +120,35 @@ function renderPosts(container, posts) {
     
     // Carousel functionality
     document.querySelectorAll('.carousel').forEach(carousel => {
-        const imgs = carousel.querySelectorAll('img');
+        const mediaItems = carousel.querySelectorAll('img, video'); // Include both images and videos
         let current = 0;
         
-        const showImage = (index) => {
-            imgs.forEach((img, i) => img.classList.toggle('active', i === index));
+        const showMedia = (index) => {
+            mediaItems.forEach((el, i) => {
+                const isActive = i === index;
+                el.classList.toggle('active', isActive);
+                
+                // Pause videos that are not active
+                if (el.tagName === 'VIDEO') {
+                    if (isActive) {
+                        el.play().catch(() => {}); // avoid autoplay errors
+                    } else {
+                        el.pause();
+                    }
+                }
+            });
         };
         
         carousel.querySelector('.prev').addEventListener('click', () => {
-            current = (current - 1 + imgs.length) % imgs.length;
-            showImage(current);
+            current = (current - 1 + mediaItems.length) % mediaItems.length;
+            showMedia(current);
         });
         
         carousel.querySelector('.next').addEventListener('click', () => {
-            current = (current + 1) % imgs.length;
-            showImage(current);
+            current = (current + 1) % mediaItems.length;
+            showMedia(current);
         });
+        
+        showMedia(current); // Initialize
     });
 }
