@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Information retention of content on social media</title>
+    
+    <!-- jsPsych CSS -->
+    <link href="https://unpkg.com/jspsych@8.2.1/css/jspsych.css" rel="stylesheet" />
+    <!-- jsPsych core and plugins -->
+    <script src="https://unpkg.com/jspsych@8.2.1"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-survey-multi-choice@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-survey-likert@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-survey-text@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-survey@2.1.0"></script>
+    
+    <!-- Papaparse to load the csv with posts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script> <!-- Might not need this one -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    
+    <!-- Instagram embed script -->
+    <script async src="//www.instagram.com/embed.js"></script>
+    <script src="post_render.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            text-align: center;
+            margin: 0;
+        }
+        .wrapper {
+            max-width: 600px;
+            text-align: center;
+            margin: 0 auto;
+            
+        }
+        .jspsych-content {
+            width: 600px;
+            text-align: left;
+        }
+        .centering {
+            text-align: center;
+            margin: auto;
+            max-width: 470px;
+        }
+        .group-prediction-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .group-prediction-item {
+            width: 48%;
+        }
+        .instagram-media {
+            max-width: 470px !important;
+            min-width: 280px !important;
+        }
+        input {
+            font-size: 20px;
+        }
+        .jspsych-btn {
+            font-size: 28px;
+            margin: auto;
+            margin-top: 40px;
+            margin-bottom: 150px;
+            display: block;
+            background-color: linen;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            text-align: center; /* centers the number text */
+        }
+        .question-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .question-text {
+            flex: 1; /* takes up available space */
+            padding-right: 10px;
+        }
+        .question-input {
+            width: 80px;
+            padding: 5px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        @media (max-width: 480px) {
+            .instagram-media {
+                max-width: 100% !important;
+            }
+            .wrapper {
+                max-width: 90% !important;
+            }
+            .jspsych-content {
+                width: 100% !important;
+            }
+            .centering {
+                max-width: 100% !important;
+            }
+        }
+    </style>
+    
+    <link href="post_feed.css" rel="stylesheet" />
+    
+</head>
+<body>
+    <div class="wrapper">
+        <div id="jspsych-target"></div>
+    </div>
+    
+    <script type="module">
+        // Monitor how long each post is viewed for
+        let postTimers = {};
+        function setupScrollTracking(postIds, allPostData) {
+            const observer = new IntersectionObserver((entries) => {
+                const now = performance.now();
+                entries.forEach(entry => {
+                    const id = entry.target.id;
+                    if (!postTimers[id]) {
+                        postTimers[id] = { totalTime: 0, start: null };
+                    }
+                    if (entry.isIntersecting) {
+                        console.log("Post entered view:", id);
+                        postTimers[id].start = now;
+                    } else if (postTimers[id].start !== null) {
+                        console.log("Post exited view:", id);
+                        postTimers[id].totalTime += now - postTimers[id].start;
+                        postTimers[id].start = null;
+                    }
+                });
+            }, {
+                threshold: 0.4
+            });
+            
+            postIds.forEach(i => {
+                const el = document.getElementById(`post-${i}`);
+                if (el) {
+                    console.log("Observing post:", `post-${i}`, el);
+                    observer.observe(el);
+                } else {
+                    console.warn("Element not found for post:", `post-${i}`);
+                }
+            });
+            
+            return () => {
+                const now = performance.now();
+                Object.values(postTimers).forEach(timer => {
+                    if (timer.start !== null) {
+                        timer.totalTime += now - timer.start;
+                        timer.start = null;
+                    }
+                });
+                observer.disconnect();
+                return postTimers;  // return timers so you can save them later
+            };
+        }
+        
+        // Initialize Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8D_6tcOgRHuIZF2ol8DzyWJ3wmY45B3I",
+            authDomain: "phd-bristol.firebaseapp.com",
+            projectId: "phd-bristol",
+            storageBucket: "phd-bristol.firebasestorage.app",
+            messagingSenderId: "559795586505",
+            appId: "1:559795586505:web:329eaebd889be645285418",
+            measurementId: "G-5CJBSCB2WH"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        
+        // Collect Prolific ID
+        // const urlParams = new URLSearchParams(window.location.search);
+        // const prolificID = urlParams.get('PROLIFIC_PID') || 'unknown';
+        
+        // Time limit for scrolling through the feed
+        const treatmentTime = 50 * 60 * 1000; // 5 minutes !!!!
+        const answerTime = 1.5 * 60 * 1000; // 1.5 minutes
+        
+        // Load all posts from csv
+        let allPosts = [];
+        let controlPosts = [];
+        let treatment1Posts = [];
+        let treatment2Posts = [];
+        let allPostData = [];
+        function createInstagramPostContainer(link, index) {
+            return `<div class="fake-instagram-post" id="post-${index}" data-link="${link}"></div><br/><br/>`;
+        }
+        Papa.parse('instagram_posts.csv', {
+            download: true,
+            header: true,
+            complete: function(results) {
+                const postGroup = [];
+                results.data.forEach((row, index) => {
+                    //if (!row.media || row.media.trim() === '') return;
+                    // Build the data object for the renderer
+                    const postData = {
+                        index,
+                        group: row.group,
+                        type: row.type,
+                        username: row.username,
+                        userPic: 'https://tiefrancobrotto.xyz/git/img/' + row.userPic.trim(),
+                        media: row.media.split(';').map(file => 'https://tiefrancobrotto.xyz/git/img/' + file.trim()),
+                        caption: row.caption,
+                        verified: row.verified && row.verified.trim().toLowerCase() === 'true'
+                    };
+                    
+                    allPostData.push(postData); // Save for rendering
+                    
+                    
+                    // Create placeholder HTML container for this post
+                    //const postHTML = `<div id="post-${index}" class="fake-instagram-post"></div>`;
+                    
+                    postGroup.push(`<div id="post-${index}"class="fake-instagram-post"></div>`);
+                });
+                
+                function shuffle(array) {
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]]; // swap
+                    }
+                }
+                shuffle(postGroup);
+                
+                // capture info from Prolific
+                function getURLParameter(name) {
+                    return new URLSearchParams(window.location.search).get(name);
+                }
+                
+                const prolificID = getURLParameter('PROLIFIC_PID');
+                const study_id = getURLParameter('STUDY_ID');
+                const session_id = getURLParameter('SESSION_ID');
+                
+                // Initialize jsPsych instance
+                const jsPsych = initJsPsych({
+                    display_element: 'jspsych-target',
+                    on_finish: function() {
+                        const interactionData = JSON.parse(jsPsych.data.getInteractionData().json());
+                        const csvData = jsPsych.data.get().csv();
+                        const data = jsPsych.data.get().json();
+                        let parsedData = JSON.parse(data);
+                        // Remove 'stimulus' from each trial object
+                        parsedData.forEach(trial => {
+                            delete trial.stimulus;
+                        });
+                        // Close out any active timers
+                        const now = Date.now();
+                        for (const [postId, data] of Object.entries(postTimers)) {
+                            if (data.start) {
+                                data.totalTime += now - data.start;
+                                data.start = null;
+                            }
+                        }
+                        console.log("postTimers before saving:", postTimers);
+                        addDoc(collection(db, "preManipulation-0"), {
+                            prolific_id: prolificID,
+                            study_id: study_id,
+                            session_id: session_id,
+                            condition: assigned_condition,
+                            reload: reloadCount,
+                            timestamp: serverTimestamp(),
+                            data: parsedData,
+                            interaction: interactionData,
+                            postViewTimes: postTimers,
+                            csv: csvData
+                        })
+                        .then(() => {
+                            console.log("Data successfully written!");
+                            document.getElementById('jspsych-target').innerHTML = "<p>Thank you! You may return to Prolific.</p>";
+                            // TO DO: UPDATE PROLIFIC LINK    
+                            // window.location = "https://app.prolific.co/submissions/complete?cc=XXXXXXX"
+                        })
+                        .catch((error) => {
+                            console.error("Error writing to Firestore: ", error);
+                            document.getElementById('jspsych-target').innerHTML = "<p>Error saving data. Please contact the researcher.</p>";
+                        });
+                    }
+                });
+                
+                // Set up control vs treatments (prevent to generate new group from same browser/day)
+                const CONDITION_KEY = 'assigned_condition';
+                const CONDITION_DATE_KEY = 'condition_date';
+                const RELOAD_COUNT_KEY = 'reload_count';
+                
+                // Get today's date as string, e.g., '2025-06-12'
+                function getTodayDateString() {
+                    return new Date().toISOString().slice(0, 10);
+                }
+                // Control which condition the participant is assigned to
+                const reloadCount = localStorage.getItem(RELOAD_COUNT_KEY);
+                
+                // Timeline definition
+                const timeline = [];
+                
+                // Step 0 - Consent
+                const consentPage = {
+                    type: jsPsychSurveyHtmlForm,
+                    preamble: `
+                    <h2>Participant Information & Consent</h2>
+                    <p><strong>Study Title:</strong> Information Retention of Content on Social Media</p>
+                    <p><strong>Voluntary Participation:</strong> Your participation is entirely voluntary. You may withdraw at any time before submitting your final responses without penalty. Simply close the browser window to exit the study.</p>
+                    <p><strong>Data Handling and Confidentiality:</strong> No identifying information (such as name, email, or IP address) will be collected. All data will remain completely anonymous and stored securely. Data may be used in academic publications or shared anonymously for scientific purposes. This study complies with GDPR regulations.</p>
+                    <p><strong>Contact Information:</strong> For questions, contact the researcher: <br>
+                    <em>Tie Franco Brotto, School for Policy Studies, University of Bristol</em> <br>
+                    Email: tie.francobrotto@bristol.ac.uk<br><br>
+                    If you have concerns about your rights as a participant, contact the university's research ethics committee.</p>
+                    <hr/>
+                    <p><strong>Consent</strong></p>
+                    `,
+                    html: `
+                    <label><input type="checkbox" name="consent_read" required> I confirm that I have read and understood the information provided above.</label><br><br>
+                    <label><input type="checkbox" name="consent_voluntary" required> I understand that my participation is voluntary and that I can withdraw at any time before submitting my responses.</label><br><br>
+                    <label><input type="checkbox" name="consent_data" required> I consent to the anonymous use of my data for research purposes, including potential future scientific publications or sharing.</label><br><br>
+                    `,
+                    button_label: "I Agree",
+                };
+                timeline.push(consentPage);
+                
+                // Step 1 - Intro
+                const intro = {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: `
+                    <h2>Information retention of content on social media</h2>
+                    <p>This study investigates how people process different types of communication online. You'll go through an admitedly long list of social media posts. For each post, you should classify what the post illustrates. Focus only on what each post illustrates, rather than what you already know about the topics represented. The majority of the posts are about either climate or pro-Palestinian activism. You will classify each post according to three categories:</p>
+                    <p><strong>Climate → Pro-Palestine:</strong> this is the easier one. Is the post illustrating activism related to the climate or Pro-palestine? If the post is not about activism, you should mark is as "Neither".</p>
+                    <p><strong>Moderate → Radical:</strong> this one is about the overall tactics and "vibes" of each post. Are activists being more radical or are they more moderate? Radical can be interpreted as using more daring tactics, being more disruptive, or causing damage to property, etc. If you're not sure, or the post is not about activism, you should mark is as "Not sure".</p>
+                    <p><strong>Niche → Broad:</strong> this is the hardest. The post itself is portraying the cause as something with broad support or as a niche cause? Broad support could be illustrated by larger crowds, or participants that are not the typical protesters for these causes. If you're not sure, or the post is not about activism, you should mark is as "Not sure".</p>
+                    <p>Many thanks!</p>
+                    `,
+                    choices: ["I'm ready to start"],
+                    // prompt: "<p>Click the button above when you're ready to begin.</p>",
+                    on_load: () => {
+                        // After stimulus is inserted, process Instagram embeds
+                        if (window.instgrm && window.instgrm.Embeds) {
+                            window.instgrm.Embeds.process();
+                        }
+                    }
+                };
+                timeline.push(intro);        
+                
+                // Step 2 - Treatment
+                let cleanupScrollTracking;
+                
+                const postRatingTrials = [];
+                
+                const usedIndices = postGroup.map(html => {
+                    const match = html.match(/post-(\d+)/);
+                    return match ? parseInt(match[1]) : null;
+                }).filter(i => i !== null);
+                
+                usedIndices.forEach(i => {
+                    const post = allPostData[i];
+                    
+                    const trial = {
+                        type: jsPsychSurveyLikert,
+                        preamble: `<div class="fake-instagram-post" id="rate-post-${i}"></div><hr/><p><strong>How would you rate this post on the following dimensions?</strong></p>`,
+                        questions: [
+                        {
+                            prompt: "Climate → Pro-Palestine",
+                            labels: ["Climate", "", "Neither", "", "Pro-Palestine"],
+                            name: `climate_palestine_${i}`,
+                            required: true
+                        },
+                        {
+                            prompt: "Moderate → Radical",
+                            labels: ["Moderate", "", "Not sure", "", "Radical"],
+                            name: `mod_rad_${i}`,
+                            required: true
+                        },
+                        {
+                            prompt: "Niche → Broad",
+                            labels: ["Niche", "", "Not sure", "", "Broad"],
+                            name: `niche_broad_${i}`,
+                            required: true
+                        }
+                        ],
+                        on_load: () => {
+                            const container = document.querySelector(`#rate-post-${i}`);
+                            renderPosts(container, [post]); // render the actual post into the preamble div
+                            // Start tracking
+                            cleanupScrollTracking = setupScrollTracking(usedIndices, allPostData);
+                        },
+                        on_finish: () => {
+                            // Save timing data
+                            if (typeof cleanupScrollTracking === 'function') {
+                                console.log("Calling cleanupScrollTracking...");
+                                cleanupScrollTracking();
+                            }
+                        },
+                        data: {
+                            post_index: i,
+                            username: post.username,
+                            group: post.group,
+                            type: post.type
+                        }
+                    };
+                    
+                    postRatingTrials.push(trial);
+                });
+                timeline.push(postRatingTrials);
+
+                // Step 3 - Outro
+                const outro = {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: "<p>Thank you for participating.</p>",
+                    choices: ["Submit my responses"],
+                    trial_duration: answerTime,
+                };
+                timeline.push(outro);
+                
+                jsPsych.run(timeline);
+            }
+        });
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: white;
+    margin: 0;
+    padding: 0;
+}
+
+.feed {
+    max-width: 468px;
+    margin: 20px auto;
+}
+
+.post {
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 14px;
+    text-align: left;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    padding: 20px 0px 10px 0px;
+}
+
+.user-pic {
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+}
+
+.username {
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 18px;
+}
+
+.verified-icon {
+    display: inline-block;
+    vertical-align: middle;
+    width: 14px;
+    height: 14px;
+    margin-left: 4px;
+}
+
+.post-img,
+.carousel img,
+video {
+    width: 100%;
+    display: block;
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+}
+
+.post-caption {
+    padding: 0px 0px 10px 0px;
+    border-bottom: 1px solid #dbdbdb;
+    font-size: 14px;
+}
+
+.carousel {
+    position: relative;
+}
+
+.carousel img {
+    display: none;
+}
+
+.carousel img.active {
+    display: block;
+}
+
+.carousel button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 50%;
+}
+
+.carousel .prev {
+    left: 10px;
+}
+
+.carousel .next {
+    right: 10px;
+}
+
+.post-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0px 0px 0px;
+}
+
+.left-actions,
+.right-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.action-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: #262626;
+    transition: stroke 0.2s;
+}
+
+.action-btn:hover svg {
+    stroke: #999;
+}
+.video-wrapper {
+    position: relative;
+    max-height: 400px; /* adjust as needed */
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    padding: 10px;
+}
+.video-wrapper video {
+    height: 100%;
+    width: auto; /* maintains aspect ratio */
+    object-fit: contain;
+    display: block;
+}
+
+
+.mute-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.4);
+    border: none;
+    border-radius: 50%;
+    padding: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mute-btn:hover {
+    background: rgba(0,0,0,0.6);
+}
+
+.mute-btn svg {
+    width: 12px;
+    height: 12px;
+    fill: white;
+}
