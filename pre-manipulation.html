@@ -286,8 +286,7 @@
                         .then(() => {
                             console.log("Data successfully written!");
                             document.getElementById('jspsych-target').innerHTML = "<p>Thank you! You may return to Prolific.</p>";
-                            // TO DO: UPDATE PROLIFIC LINK    
-                            // window.location = "https://app.prolific.co/submissions/complete?cc=XXXXXXX"
+                            window.location = "https://app.prolific.com/submissions/complete?cc=C1451K59" // TO DO: UPDATE PROLIFIC LINK
                         })
                         .catch((error) => {
                             console.error("Error writing to Firestore: ", error);

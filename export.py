@@ -1,45 +1,44 @@
 from google.cloud import firestore
-import pandas as pd
+import json
+from google.protobuf.timestamp_pb2 import Timestamp
+from google.cloud.firestore_v1 import _helpers
 
-def flatten_dict(d, parent_key='', sep='.'):
-    """Recursively flattens nested dictionaries and lists of dictionaries"""
-    items = []
-    for k, v in d.items():
-        new_key = f"{parent_key}{sep}{k}" if parent_key else k
-        if isinstance(v, dict):
-            items.extend(flatten_dict(v, new_key, sep=sep).items())
-        elif isinstance(v, list):
-            for i, item in enumerate(v):
-                if isinstance(item, dict):
-                    # Flatten each dict in the list
-                    items.extend(flatten_dict(item, f"{new_key}{sep}{i}", sep=sep).items())
-                else:
-                    # Handle lists of primitives
-                    items.append((f"{new_key}{sep}{i}", item))
-        else:
-            items.append((new_key, v))
-    return dict(items)
+def convert_firestore_types(obj):
+    """
+    Recursively convert Firestore-specific types (like timestamps)
+    into JSON-serializable Python types (strings).
+    """
+    if isinstance(obj, dict):
+        return {k: convert_firestore_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_firestore_types(i) for i in obj]
+    elif isinstance(obj, Timestamp):
+        return obj.ToDatetime().isoformat()
+    elif isinstance(obj, _helpers.DatetimeWithNanoseconds):
+        # Convert Firestore DatetimeWithNanoseconds to ISO string
+        return obj.isoformat()
+    elif hasattr(obj, "ToDatetime"):  # fallback for other datetime-like objects
+        return obj.ToDatetime().isoformat()
+    else:
+        return obj
 
-def export_firestore_to_csv(collection_name, output_csv):
+def export_firestore_to_json(collection_name, output_json):
     db = firestore.Client()
     docs = db.collection(collection_name).stream()
 
     data = []
     for doc in docs:
         doc_dict = doc.to_dict()
-        doc_dict['id'] = doc.id
-        flat_doc = flatten_dict(doc_dict)
-        data.append(flat_doc)
+        doc_dict["session_id"] = doc.id
+        clean_doc = convert_firestore_types(doc_dict)
+        data.append(clean_doc)
 
-    if not data:
-        print("No data found in collection:", collection_name)
-        return
+    with open(output_json, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
-    df = pd.DataFrame(data)
-    df.to_csv(output_csv, index=False)
-    print(f"Exported {len(data)} documents to {output_csv}")
+    print(f"Exported {len(data)} participants to {output_json}")
 
 if __name__ == "__main__":
-    collection = "version1-0"  # Firestore collection name
-    output_file = "firestore_export_flat.csv"
-    export_firestore_to_csv(collection, output_file)
+    collection = "preManipulation-0"
+    output_file = "firestore_export.json"
+    export_firestore_to_json(collection, output_file)

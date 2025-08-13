@@ -1,8 +1,8 @@
 # Experiment - 2025 June
 
-I'm using jsPsych to design this simple experiment. The data is stored with Firebase, and I use the export.py script to extract all of the data as a JSON and "flatten" it to a csv. I then use R to analyse the data. This is the first time I'm using this set up, so there is a lot that I'm learning. I will document what I learn here.
+I'm using jsPsych to design this simple experiment. The data is stored with Firebase, and I use the export.py script to extract all of the data as a JSON and "flatten" it to a csv using read_json.R. I then use R to analyse the data. This is the first time I'm using this set up, so there is a lot that I'm learning. I will document what I learn here.
 
-Tool and questionnaire V1
+main.html V1
 
 + Store information about participant reloading the page
 + Record browser interactions
@@ -12,7 +12,17 @@ Tool and questionnaire V1
 + Add first page with consent etc.
 + Center and style bigger buttons
 
-Design and power analysis V1
+main.html V2
+
++ Revised questionnaire, focused on 3 factors for each of the key indicators.
++ Changed from 2 treatment and 1 control group to a full 2x2x2 design (cause x social support x tactics) + a control group for the climate/environment cause. Some of the groups might hold a little less ecological validity since they are less realist (i.e. there seems to be a natural correlation between social support and tactics, so small and radical are more common than large and radical protests)
++ Right now the media is hosting in a shared Hostinger server. I used stresser.js with k6 so test the server. It seems like it can support around 30-35 simultaneous users, which I can use to limit access in Prolific.
+
+pre-manipulation.html V1
+
++ This is a little tool based on the main tool, that only loops through all posts and ask three questions about each post, to serve as a "pre-manipulation" check
+
+design.R V1
 
 + Use D-optimisation to select the fractional factorial design of the experiment
 + Simulate a dataset based on the optimised design
@@ -21,18 +31,13 @@ Design and power analysis V1
 
 ### To do list 
 
-Tool and questionnaire V2
+main.html V3
 
 + I need to run a pilot to check my manipulation. What is actually changing across the groups?
-+ interaction with counter movement, like related to inoculation. which overcomes the other?
-+ Media Preloading?
++ Media Preloading (see https://www.jspsych.org/v8/overview/media-preloading/)
 + Automatic Progress Bar
-+ Maybe I should add other statements in the main question, related to considering voting for candidates that a b c, and how often people talk positively about climate issues? I don't know, something that would indicate other forms of civic action? But then this is not about measuring action anyways, so I don't know what makes sense. Like "being a climate activist is kinda cool". Or maybe some unrelated negative things, like issues with immigration or something? Like more related to backfire effects.
-+ Should I change the treatment nondisruptive to something like unusual supporters, like farmers or something?
-+ Add something at the end like "we are doing similar studies in the future that you can participate, which topics would you be most interested to read about:" and a checkbox if they would like to participate
-+ not every treatment needs to hold ecological validity, some can be there just to make a hypothetical point
 
-Analysis V1
+analysis.R V1
 
 + Generate data with _Simulation Modes_ - alright so apparently that won't work because simulate is very bad with forms
 + Clean the csv
@@ -53,3 +58,5 @@ When I uploaded the main.html for the first time, I got an email warning me that
 To set up VS Code to give export.py access to Firebase, I need to get my service account JSON key file from: https://console.cloud.google.com/iam-admin/serviceaccounts (select project, generate and download a JSON key file) and then run the line below in the terminal. If I lose the JSON file, I have to create a new key and delete the old one.
 
 `export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/service-account-key.json"`
+
+Working with JSON is difficult in the beginning. I'm more familiar with R, so decided to wrangle the data there instead of Python.
