@@ -209,7 +209,9 @@
                 const postGroup = [];
                 let validCount = 0;
                 results.data.forEach((row, index) => {
-                    //if (validCount >= 10) return; // Stop after 10 posts
+                    const nParam = parseInt(getURLParameter('n'), 10);
+                    const postsN = isNaN(nParam) ? 200 : nParam;
+                    if (validCount >= 10) return; // Stop after n posts
                     // Build the data object for the renderer
                     const media = row.media.split(';').map(file => file.trim()).filter(file => file.length > 0);
                     if (media.length === 0) return; // Skip if no media
